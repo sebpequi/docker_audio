@@ -8,12 +8,17 @@ FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Bug conocido de empaquetado en imagenes base de CUDA/Ubuntu bajo Kaniko:
-# si 'ffmpeg' se instala en la MISMA linea que otros paquetes, el postinst
-# de dbus (dependencia de ffmpeg) que crea el grupo 'messagebus' se ejecuta
-# en un orden que tumba dpkg. Fix confirmado: separar ffmpeg en su propio
-# paso, sin --no-install-recommends (necesita sus dependencias completas
-# para que torchaudio pueda usarlo como backend de todas formas).
+# Bug conocido de empaquetado en imagenes base de CUDA/Ubuntu: el archivo
+# statoverride hereda una referencia al grupo 'messagebus' que no existe
+# en esta capa -- CUALQUIER dpkg --configure posterior falla con esto,
+# sin importar que paquete estes instalando (tu log confirma que revienta
+# en el PRIMER apt-get install, antes de siquiera llegar a ffmpeg). Se
+# limpia el archivo antes de instalar nada.
+RUN rm -f /var/lib/dpkg/statoverride
+
+# Ademas, por las dudas: si 'ffmpeg' se instala en la MISMA linea que otros
+# paquetes, su dependencia dbus puede generar el mismo tipo de conflicto.
+# Lo dejamos separado en su propio paso como practica segura.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         git python3.10 python3-pip libsndfile1 curl ca-certificates \
