@@ -21,11 +21,20 @@ RUN rm -f /var/lib/dpkg/statoverride
 # Lo dejamos separado en su propio paso como practica segura.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git python3 python3-pip libsndfile1 curl ca-certificates \
+        git python3.10 python3-pip libsndfile1 curl ca-certificates \
     && apt-get install -y ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Fija python3.10 como el 'python3'/'pip3' por defecto del sistema. Sin
+# esto, si algun paquete (ej. gradio, arrastrado por chatterbox) instala
+# python3.12 como dependencia transitiva, comandos genericos 'pip3 install'
+# podrian terminar usando el interprete equivocado sin que nos demos cuenta
+# -- exactamente lo que causo el crash con uvicorn (shebang apuntando a un
+# python3.12 que no persistio en la imagen final).
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1 \
+    && update-alternatives --set python3 /usr/bin/python3.10
 
 RUN pip3 install -U "huggingface_hub[cli]" --no-cache-dir \
     && pip3 install --no-cache-dir git+https://github.com/resemble-ai/chatterbox.git
