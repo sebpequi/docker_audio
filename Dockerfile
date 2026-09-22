@@ -8,16 +8,16 @@ FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Bug conocido de empaquetado en imagenes base de CUDA/Ubuntu: el archivo
-# statoverride referencia el grupo 'messagebus' (dbus) sin que el grupo
-# exista todavia en esta capa, lo que tumba dpkg con "unrecoverable fatal
-# error". Se limpia antes de instalar nada. Ver: dpkg-statoverride bug
-# reportado multiples veces en distintos proyectos (crontab, plocate,
-# Debian-exim, messagebus -- mismo patron, mismo fix).
-RUN rm -f /var/lib/dpkg/statoverride
-
-RUN apt-get update && apt-get install -y \
-        git python3.10 python3-pip ffmpeg libsndfile1 curl \
+# Bug conocido de empaquetado en imagenes base de CUDA/Ubuntu bajo Kaniko:
+# si 'ffmpeg' se instala en la MISMA linea que otros paquetes, el postinst
+# de dbus (dependencia de ffmpeg) que crea el grupo 'messagebus' se ejecuta
+# en un orden que tumba dpkg. Fix confirmado: separar ffmpeg en su propio
+# paso, sin --no-install-recommends (necesita sus dependencias completas
+# para que torchaudio pueda usarlo como backend de todas formas).
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git python3.10 python3-pip libsndfile1 curl ca-certificates \
+    && apt-get install -y ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
