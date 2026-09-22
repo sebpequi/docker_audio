@@ -27,8 +27,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN pip3 install -U "huggingface_hub[cli]" \
-    && pip3 install git+https://github.com/resemble-ai/chatterbox.git
+RUN pip3 install -U "huggingface_hub[cli]" --no-cache-dir \
+    && pip3 install --no-cache-dir git+https://github.com/resemble-ai/chatterbox.git
 
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
