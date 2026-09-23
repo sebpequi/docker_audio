@@ -39,6 +39,8 @@ RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir \
 COPY requirements.txt /app/requirements.txt
 RUN python3.10 -m pip install --no-cache-dir -r /app/requirements.txt
 
+RUN python3.10 -c "import six, boto3, dateutil; print('deps ok')"
+
 # --- Modelo horneado en la imagen ---
 RUN hf download ResembleAI/chatterbox --local-dir /app/models/chatterbox_v3
 
