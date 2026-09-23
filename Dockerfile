@@ -20,7 +20,7 @@ RUN rm -f /var/lib/dpkg/statoverride
 # pip manualmente, amarrado EXPLICITAMENTE a python3.10, mas abajo.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git python3.10 curl libsndfile1 ca-certificates \
+        git python3.10 curl libsndfile1 ca-certificates python3-six \
     && apt-get install -y ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
