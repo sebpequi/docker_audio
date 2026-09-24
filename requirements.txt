@@ -1,8 +1,9 @@
 psycopg2-binary==2.9.9
 requests==2.32.3
 fastapi>=0.115.2
+starlette<1.0
 uvicorn>=0.30.6
 boto3==1.35.0
 six
-torch
-torchaudio
+torch==2.6.0
+torchaudio==2.6.0
