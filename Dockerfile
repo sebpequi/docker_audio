@@ -37,14 +37,14 @@ RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir \
     && python3.10 -m pip install --no-cache-dir git+https://github.com/resemble-ai/chatterbox.git
 
 COPY requirements.txt /app/requirements.txt
-RUN python3.10 -m pip install --no-cache-dir -r /app/requirements.txt
-
-# DIAGNOSTICO (build-time): muestra EXACTAMENTE donde quedo instalado 'six'
-# y que ve sys.path en este punto, para comparar contra lo que se vea en
-# runtime (agregado tambien en entrypoint.sh).
-RUN python3.10 -m pip show six \
-    && python3.10 -c "import sys; print('BUILD sys.path:', sys.path)" \
-    && python3.10 -c "import six; print('BUILD six.__file__:', six.__file__)"
+# --ignore-installed: fuerza a pip a instalar su PROPIA copia de cada
+# paquete en /usr/local/lib/python3.10/dist-packages (la unica ruta que
+# SI persiste en runtime), en vez de confiar en paquetes que el sistema
+# operativo ya cree tener instalados en otra ruta (/usr/lib/python3/dist-packages,
+# especifica de Debian/Ubuntu, que no sobrevive al contenedor final). Esto
+# fue exactamente la causa real de "No module named six": pip vio que 'six'
+# ya estaba "satisfecho" por una copia del sistema y nunca instalo la suya.
+RUN python3.10 -m pip install --no-cache-dir --ignore-installed -r /app/requirements.txt
 
 # --- Modelo horneado en la imagen ---
 RUN hf download ResembleAI/chatterbox --local-dir /app/models/chatterbox_v3
