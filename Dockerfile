@@ -33,8 +33,11 @@ WORKDIR /app
 
 # A partir de aqui, SIEMPRE 'python3.10 -m pip install' -- nunca 'pip3' o
 # 'pip' sueltos, para no volver a caer en la misma ambiguedad.
-RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir --ignore-installed \
-    && python3.10 -m pip install --no-cache-dir --ignore-installed git+https://github.com/resemble-ai/chatterbox.git
+# se mexclaron los procesos de instalacion para ver si pip maneja bien las versiones
+# de las dependencias y así evitar conflictos
+RUN python3.10 -m pip install --no-cache-dir --ignore-installed \
+        "huggingface_hub[cli]>=1.3.0,<2.0" \
+        git+https://github.com/resemble-ai/chatterbox.git
 
 COPY requirements.txt /app/requirements.txt
 # --ignore-installed: fuerza a pip a instalar su PROPIA copia de cada
