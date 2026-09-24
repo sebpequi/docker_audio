@@ -7,3 +7,4 @@ boto3==1.35.0
 six
 torch==2.6.0
 torchaudio==2.6.0
+packaging
