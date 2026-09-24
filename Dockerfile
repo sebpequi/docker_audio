@@ -20,7 +20,7 @@ RUN rm -f /var/lib/dpkg/statoverride
 # pip manualmente, amarrado EXPLICITAMENTE a python3.10, mas abajo.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        git python3.10 curl libsndfile1 ca-certificates python3-six \
+        git python3.10 curl libsndfile1 ca-certificates \
     && apt-get install -y ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
@@ -39,7 +39,12 @@ RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir \
 COPY requirements.txt /app/requirements.txt
 RUN python3.10 -m pip install --no-cache-dir -r /app/requirements.txt
 
-RUN python3.10 -c "import six, boto3, dateutil; print('deps ok')"
+# DIAGNOSTICO (build-time): muestra EXACTAMENTE donde quedo instalado 'six'
+# y que ve sys.path en este punto, para comparar contra lo que se vea en
+# runtime (agregado tambien en entrypoint.sh).
+RUN python3.10 -m pip show six \
+    && python3.10 -c "import sys; print('BUILD sys.path:', sys.path)" \
+    && python3.10 -c "import six; print('BUILD six.__file__:', six.__file__)"
 
 # --- Modelo horneado en la imagen ---
 RUN hf download ResembleAI/chatterbox --local-dir /app/models/chatterbox_v3
