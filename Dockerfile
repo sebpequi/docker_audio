@@ -33,8 +33,8 @@ WORKDIR /app
 
 # A partir de aqui, SIEMPRE 'python3.10 -m pip install' -- nunca 'pip3' o
 # 'pip' sueltos, para no volver a caer en la misma ambiguedad.
-RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir \
-    && python3.10 -m pip install --no-cache-dir git+https://github.com/resemble-ai/chatterbox.git
+RUN python3.10 -m pip install -U "huggingface_hub[cli]" --no-cache-dir --ignore-installed \
+    && python3.10 -m pip install --no-cache-dir --ignore-installed git+https://github.com/resemble-ai/chatterbox.git
 
 COPY requirements.txt /app/requirements.txt
 # --ignore-installed: fuerza a pip a instalar su PROPIA copia de cada
@@ -45,6 +45,10 @@ COPY requirements.txt /app/requirements.txt
 # fue exactamente la causa real de "No module named six": pip vio que 'six'
 # ya estaba "satisfecho" por una copia del sistema y nunca instalo la suya.
 RUN python3.10 -m pip install --no-cache-dir --ignore-installed -r /app/requirements.txt
+
+# Prueba de humo: si falta cualquier dependencia de Chatterbox, el build
+# falla AQUI (pod CPU barato), antes de bajar el modelo pesado.
+RUN python3.10 -c "from chatterbox.mtl_tts import ChatterboxMultilingualTTS; print('chatterbox import ok')"
 
 # --- Modelo horneado en la imagen ---
 RUN hf download ResembleAI/chatterbox --local-dir /app/models/chatterbox_v3
